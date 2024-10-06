@@ -26,7 +26,7 @@ const createProduct = async (req:Request, res:Response)=>{
 const getAllProduct = async (req:Request, res:Response)=>{
     try{
 
- const { searchTerm, minPrice, maxPrice, page = 1, limit = 10 } = req.query;
+ const { searchTerm, minPrice, maxPrice, page = 1, limit = 10, sortBy, sortOrder } = req.query;
   const parsedLimit = Number(limit) || 10; 
   const parsedPage = Number(page) || 1; 
   const skip = (parsedPage - 1) * parsedLimit; 
@@ -42,7 +42,9 @@ const getAllProduct = async (req:Request, res:Response)=>{
     searchTerm: searchTerm || "",
     priceFilter: Object.keys(priceFilter).length ? priceFilter : null,
     skip,
-    limit:parsedLimit
+    limit:parsedLimit,
+    sortBy,
+    sortOrder
   });
 
         res.status(200).json({
@@ -112,6 +114,26 @@ const updateProduct = async (req:Request, res:Response)=>{
     }
 }
 
+const updateSingleProduct = async(req:Request, res:Response)=>{
+    try{
+        const{id} = req.params
+        const updateSingleProduct = await productService.updateSingleProductIntoDb(id, req.body)
+
+        res.status(200).json({
+            success: true,
+            message: "Products updated successfully",
+            data: updateSingleProduct,
+        });
+    }catch(err){
+        res.status(500).json({
+            success:true,
+            message:"something went wrong",
+            
+            
+        })
+    }
+}
+
 const deleteProduct = async (req:Request, res:Response)=>{
     try{
         const {id} = req.params
@@ -141,6 +163,7 @@ export const productController = {
     createProduct,
     getAllProduct,
     updateProduct,
+    updateSingleProduct,
     deleteProduct,
     getSingleProduct
 }

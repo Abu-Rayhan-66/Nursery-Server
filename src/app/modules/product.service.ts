@@ -7,29 +7,36 @@ const createProductIntoDb = async (payload: TProduct) => {
   return newProduct;
 };
 
-const getProductFromDb = async (query: Record<string,unknown>)=>{
-    const { searchTerm, priceFilter, skip = 0, limit = 10 } = query;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filterConditions: any = {
-        isDeleted: false,
-      };
+const getProductFromDb = async (query: Record<string, unknown>) => {
+  const { searchTerm, priceFilter, skip = 0, limit = 10, sortBy, sortOrder } = query;
 
-    if (searchTerm) {
-        filterConditions.$or = [
-          { title: { $regex: searchTerm, $options: "i" } },
-          { category: { $regex: searchTerm, $options: "i" } },
-        ];
-      }
-    
-      if (priceFilter) {
-        filterConditions.price = priceFilter;
-      }
-    
-      return await ProductModel.find(filterConditions)
-      .skip(Number(skip))   
-      .limit(Number(limit))
+  const filterConditions: Record<string, unknown> = {
+    isDeleted: false,
+  };
 
-}
+  if (searchTerm) {
+    filterConditions.$or = [
+      { title: { $regex: searchTerm, $options: "i" } },
+      { category: { $regex: searchTerm, $options: "i" } },
+    ];
+  }
+
+  if (priceFilter) {
+    filterConditions.price = priceFilter;
+  }
+
+  const sortConditions: Record<string, 1 | -1> = {};
+  if (typeof sortBy === "string") {
+    sortConditions[sortBy] = sortOrder === "asc" ? 1 : -1; 
+  }
+
+  return await ProductModel.find(filterConditions)
+    .sort(sortConditions)
+    .skip(Number(skip))
+    .limit(Number(limit));
+};
+
+
 const getSingleProductFromDb = async (id:string)=>{
 
 
@@ -44,11 +51,15 @@ const updateProductIntoDb = async (id:string, payload:TProduct)=>{
     throw new Error('Product not found');
   }
 
-  // Calculate the new quantity
   const newQuantity = existingProduct.quantity - payload.quantity;
     const result = await ProductModel.findByIdAndUpdate(id, {quantity:newQuantity},{new:true})
     return result
 }
+const updateSingleProductIntoDb = async (id:string, payload:TProduct)=>{
+    const result = await ProductModel.findByIdAndUpdate(id,payload )
+    return result
+}
+
 const deleteProductIntoDb = async (id:string)=>{
     const result = await ProductModel.findByIdAndDelete(id)
     return result
@@ -60,5 +71,6 @@ export const productService = {
     getProductFromDb,
     updateProductIntoDb,
     deleteProductIntoDb,
-    getSingleProductFromDb
+    getSingleProductFromDb,
+    updateSingleProductIntoDb
 };
