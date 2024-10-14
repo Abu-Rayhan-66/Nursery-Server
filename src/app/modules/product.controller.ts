@@ -82,10 +82,8 @@ const getSingleProduct = async (req:Request, res:Response)=>{
 
 const updateProduct = async (req:Request, res:Response)=>{
     try {
-        const products = req.body; // Array of products to be updated
+        const products = req.body; 
         
-
-        // Validate if products array is provided
         if (!Array.isArray(products) || products.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -94,11 +92,10 @@ const updateProduct = async (req:Request, res:Response)=>{
         }
 
         const updatePromises = products.map(async (product) => {
-            const { id, ...updateData } = product; // Destructure to get the product id and update data
+            const { id, ...updateData } = product; 
             return productService.updateProductIntoDb(id, updateData);
         });
 
-        // Wait for all update operations to complete
         const updatedProducts = await Promise.all(updatePromises);
 
         res.status(200).json({
@@ -137,7 +134,6 @@ const updateSingleProduct = async(req:Request, res:Response)=>{
 const deleteProduct = async (req:Request, res:Response)=>{
     try{
         const {id} = req.params
-        // console.log("from product controller", product, id)
          await productService.deleteProductIntoDb(id)
 
         res.status(200).json({
